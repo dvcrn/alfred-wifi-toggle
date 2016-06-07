@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>bundleid</key>
-	<string>cx.dave.alfred-wifi</string>
+	<string>cx.dave.alfred.wifi</string>
 	<key>category</key>
 	<string>Tools</string>
 	<key>connections</key>
