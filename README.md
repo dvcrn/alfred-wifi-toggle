@@ -13,7 +13,7 @@ Install through [packal](http://www.packal.org/workflow/wifi-control)
 
 ## Usage
 
-![screenshot][screenshot.png]
+![screenshot](screenshot.png)
 
 - `wifi on` will turn the WiFi on
 - `wifi off` will turn the WiFi off
