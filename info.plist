@@ -3,11 +3,24 @@
 <plist version="1.0">
 <dict>
 	<key>bundleid</key>
-	<string>cx.dave.alfred.wifi</string>
+	<string>com.davidmohl.alfred-wifi-toggle</string>
 	<key>category</key>
 	<string>Tools</string>
 	<key>connections</key>
 	<dict>
+		<key>A389AB32-C55F-427D-B62F-BE1F61F0E001</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>C98299F1-69E4-4AD5-ACA1-9083B5A1730D</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
 		<key>B11B132B-4A61-4C05-8F4F-2111F454E6C6</key>
 		<array>
 			<dict>
@@ -25,40 +38,13 @@
 	<key>createdby</key>
 	<string>David Mohl</string>
 	<key>description</key>
-	<string></string>
+	<string>Toggle WiFi on/off</string>
 	<key>disabled</key>
 	<false/>
 	<key>name</key>
 	<string>WiFi Control</string>
 	<key>objects</key>
 	<array>
-		<dict>
-			<key>config</key>
-			<dict>
-				<key>argumenttype</key>
-				<integer>0</integer>
-				<key>fixedorder</key>
-				<true/>
-				<key>items</key>
-				<string>[{"title":"on","arg":"on","subtitle":"Turn WiFi On"},{"imagefile":"d026db52841f8e2fcdd597502f94261cba840d53.png","title":"off","arg":"off","subtitle":"Turn WiFi Off"}]</string>
-				<key>keyword</key>
-				<string>wifi</string>
-				<key>runningsubtext</key>
-				<string></string>
-				<key>subtext</key>
-				<string>Turn WiFi on/off</string>
-				<key>title</key>
-				<string>WiFi Control</string>
-				<key>withspace</key>
-				<true/>
-			</dict>
-			<key>type</key>
-			<string>alfred.workflow.input.listfilter</string>
-			<key>uid</key>
-			<string>B11B132B-4A61-4C05-8F4F-2111F454E6C6</string>
-			<key>version</key>
-			<integer>1</integer>
-		</dict>
 		<dict>
 			<key>config</key>
 			<dict>
@@ -84,6 +70,106 @@ networksetup -setairportpower en0 $query</string>
 			<key>version</key>
 			<integer>2</integer>
 		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>concurrently</key>
+				<false/>
+				<key>escaping</key>
+				<integer>102</integer>
+				<key>script</key>
+				<string># Based On The OneUpdater workflow, but heavily simplified for github releases
+# https://github.com/vitorgalvao/alfred-workflows/tree/master/OneUpdater
+
+# THESE VARIABLES MUST BE SET.
+readonly github_repo='dvcrn/alfred-wifi-toggle'
+readonly frequency_check='1' # days
+
+# FROM HERE ON, CODE SHOULD BE LEFT UNTOUCHED!
+readonly info_plist='info.plist'
+
+function abort {
+  echo "${1}" &gt;&amp;2
+  exit 1
+}
+
+function notification {
+  osascript -e "display notification \"${1}\" with title \"${alfred_workflow_name}\" subtitle \"A new version is available\""
+}
+
+function fetch_remote_version {
+  curl --silent "https://api.github.com/repos/${github_repo}/releases/latest" | grep 'tag_name' | head -1 | sed -E 's/.*tag_name": "v?(.*)".*/\1/'
+}
+
+function fetch_download_url {
+  curl --silent "https://api.github.com/repos/${github_repo}/releases/latest" | grep 'browser_download_url.*\.alfredworkflow"' | head -1 | sed -E 's/.*browser_download_url": "(.*)".*/\1/'
+}
+
+function download_and_install {
+  readonly tmpfile="$(mktemp).alfredworkflow"
+  notification 'Downloading and installing…'
+  curl --silent --location --output "${tmpfile}" "${1}"
+  open "${tmpfile}"
+}
+
+# Local sanity checks
+[[ -n "${alfred_workflow_version}" ]] || abort "'alfred_workflow_version' must be set."
+[[ -n "${alfred_workflow_name}" ]] || abort "'alfred_workflow_name' must be set."
+[[ "${github_repo}" =~ ^.+\/.+$ ]] || abort "'github_repo' (${github_repo}) must be in the format 'username/repo'."
+[[ "${frequency_check}" =~ ^[0-9]+$ ]] || abort "'frequency_check' (${frequency_check}) must be a number."
+
+# Check for updates
+if [[ $(find "${info_plist}" -mtime +"${frequency_check}"d) ]]; then
+  if [[ "${alfred_workflow_version}" == "$(fetch_remote_version)" ]]; then
+    touch "${info_plist}" # Reset timer by touching local file
+    exit 0
+  fi
+
+  download_and_install "$(fetch_download_url)"
+fi</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>type</key>
+				<integer>0</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>C98299F1-69E4-4AD5-ACA1-9083B5A1730D</string>
+			<key>version</key>
+			<integer>2</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>argumenttrimmode</key>
+				<integer>0</integer>
+				<key>argumenttype</key>
+				<integer>0</integer>
+				<key>fixedorder</key>
+				<true/>
+				<key>items</key>
+				<string>[{"title":"on","arg":"on","subtitle":"Turn WiFi On"},{"imagefile":"d026db52841f8e2fcdd597502f94261cba840d53.png","title":"off","arg":"off","subtitle":"Turn WiFi Off"}]</string>
+				<key>keyword</key>
+				<string>wifi</string>
+				<key>runningsubtext</key>
+				<string></string>
+				<key>subtext</key>
+				<string>Turn WiFi on/off</string>
+				<key>title</key>
+				<string>WiFi Control</string>
+				<key>withspace</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.listfilter</string>
+			<key>uid</key>
+			<string>B11B132B-4A61-4C05-8F4F-2111F454E6C6</string>
+			<key>version</key>
+			<integer>1</integer>
+		</dict>
 	</array>
 	<key>readme</key>
 	<string></string>
@@ -92,7 +178,7 @@ networksetup -setairportpower en0 $query</string>
 		<key>A389AB32-C55F-427D-B62F-BE1F61F0E001</key>
 		<dict>
 			<key>xpos</key>
-			<integer>430</integer>
+			<integer>330</integer>
 			<key>ypos</key>
 			<integer>200</integer>
 		</dict>
@@ -103,8 +189,19 @@ networksetup -setairportpower en0 $query</string>
 			<key>ypos</key>
 			<integer>200</integer>
 		</dict>
+		<key>C98299F1-69E4-4AD5-ACA1-9083B5A1730D</key>
+		<dict>
+			<key>note</key>
+			<string>Auto Update - remove to disable</string>
+			<key>xpos</key>
+			<integer>580</integer>
+			<key>ypos</key>
+			<integer>200</integer>
+		</dict>
 	</dict>
+	<key>version</key>
+	<string>1.0.0</string>
 	<key>webaddress</key>
-	<string></string>
+	<string>https://github.com/dvcrn/alfred-wifi-toggle</string>
 </dict>
 </plist>
